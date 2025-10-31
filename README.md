@@ -1,10 +1,26 @@
-# Sysdig関連記事
+# 技術記事リポジトリ
 
-このリポジトリには、Sysdigに関する技術記事が含まれています。
+このリポジトリには、監視ツールとクラウドネイティブに関する技術記事が含まれています。
 
 ## 📚 記事一覧
 
-### メイン記事
+### 1. OSS監視ツール徹底比較（2025年版）
+
+- **[OSS監視ツール徹底比較：あなたの環境に合う選択はどれか](./oss-monitoring-tools-comparison.md)**
+  - Prometheus、Zabbix、Nagiosなど主要OSS監視ツールの完全比較ガイド
+  - 内容:
+    - Prometheus + Grafana vs Zabbix の詳細比較
+    - データ収集モデル、スケーラビリティ、適用シーン
+    - 実践的な選定フローチャート
+    - TCO（Total Cost of Ownership）分析
+    - ユースケース別推奨構成（4パターン）
+    - FAQ（10問）
+  - プラットフォーム別バージョン:
+    - [Zenn版](./platforms/comparison/oss-monitoring-comparison-zenn.md)
+    - [Qiita版](./platforms/comparison/oss-monitoring-comparison-qiita.md)
+    - [Medium版](./platforms/comparison/oss-monitoring-comparison-medium.md)
+
+### 2. Sysdig Monitor 徹底解説
 
 - **[Sysdig Monitor をみんなに使って欲しい 徹底解説](./sysdig-monitor-complete-guide.md)**
   - Prometheusの100%マネージドサービスとして、そしてCNAPPプラットフォームとしてのSysdig Monitorを徹底解説
@@ -76,17 +92,26 @@
 
 ```
 articles/
-├── README.md                              # このファイル
-├── sysdig-monitor-complete-guide.md       # メイン記事
-├── SCREENSHOT_REQUIREMENTS.md             # スクリーンショット要件
-├── platforms/                             # プラットフォーム別バージョン
-│   ├── zenn/
+├── README.md                                        # このファイル
+├── VERIFICATION_REPORT.md                           # Sysdig記事の技術検証レポート
+├── SCREENSHOT_REQUIREMENTS.md                       # スクリーンショット要件
+│
+├── oss-monitoring-tools-comparison.md               # OSS監視ツール比較記事（メイン）
+├── sysdig-monitor-complete-guide.md                 # Sysdig Monitor記事（メイン）
+│
+├── platforms/                                       # プラットフォーム別バージョン
+│   ├── comparison/                                  # OSS監視ツール比較
+│   │   ├── oss-monitoring-comparison-zenn.md
+│   │   ├── oss-monitoring-comparison-qiita.md
+│   │   └── oss-monitoring-comparison-medium.md
+│   ├── zenn/                                        # Sysdig記事
 │   │   └── sysdig-monitor-guide-zenn.md
 │   ├── qiita/
 │   │   └── sysdig-monitor-guide-qiita.md
 │   └── medium/
 │       └── sysdig-monitor-guide-medium.md
-└── images/                                # 画像ファイル（今後追加予定）
+│
+└── images/                                          # 画像ファイル（今後追加予定）
     └── screenshots/
 ```
 
