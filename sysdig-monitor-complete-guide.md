@@ -16,7 +16,10 @@
 4. [監視とセキュリティの統合プラットフォーム（CNAPP）](#監視とセキュリティの統合プラットフォームcnapp)
 5. [実践編：Sysdig Monitorを使ってみる](#実践編sysdig-monitorを使ってみる)
 6. [ユースケース別の活用例](#ユースケース別の活用例)
-7. [まとめ](#まとめ)
+7. [コスト比較詳細](#コスト比較詳細)
+8. [トラブルシューティング](#トラブルシューティング)
+9. [よくある質問（FAQ）](#よくある質問faq)
+10. [まとめ](#まとめ)
 
 ---
 
@@ -51,6 +54,36 @@ Sysdig Monitorは、これらの課題をエンタープライズグレードの
 
 - **Prometheus**: 垂直スケーリングモデル、ローカルディスクベースの時系列データベース
 - **Sysdig Monitor**: 水平スケーリングモデル、Cassandra（メトリクス）+ Elasticsearch（イベント）+ Redis（仲介処理）の分散アーキテクチャ
+
+```mermaid
+graph TB
+    subgraph "OSS Prometheus アーキテクチャ"
+        A[Kubernetes Cluster] --> B[Prometheus Server]
+        A --> C[node-exporter]
+        A --> D[kube-state-metrics]
+        A --> E[cAdvisor]
+        C --> B
+        D --> B
+        E --> B
+        B --> F[Grafana]
+        B --> G[Alert Manager]
+        B --> H[Local Storage<br/>数週間]
+    end
+
+    subgraph "Sysdig Monitor アーキテクチャ"
+        I[Kubernetes Cluster] --> J[Sysdig Agent<br/>1つだけ!]
+        J --> K[Sysdig SaaS Platform]
+        K --> L[Cassandra<br/>メトリクス]
+        K --> M[Elasticsearch<br/>イベント]
+        K --> N[Redis<br/>仲介処理]
+        L --> O[長期保存<br/>複数年]
+        K --> P[統合UI<br/>ダッシュボード + アラート]
+    end
+
+    style J fill:#4CAF50
+    style K fill:#2196F3
+    style P fill:#FF9800
+```
 
 これにより、Sysdig Monitorは大規模環境でも安定したパフォーマンスを維持し、長期的なトレンド分析やコンプライアンス要件に対応できます。
 
@@ -106,8 +139,38 @@ CNAPP（Cloud-Native Application Protection Platform）は、以下の機能を�
 
 Sysdigの強みは、**Runtime Insights**と呼ばれる実行時データを活用することです。
 
-```
-監視データ（Monitor）→ セキュリティ分析（Secure）→ 優先度付け → 迅速な対応
+```mermaid
+flowchart LR
+    A[Runtime Data<br/>実行時データ] --> B{Sysdig Platform}
+
+    subgraph Monitor[Sysdig Monitor]
+        C[メトリクス収集]
+        D[ダッシュボード]
+        E[アラート]
+    end
+
+    subgraph Secure[Sysdig Secure]
+        F[脅威検出]
+        G[脆弱性スキャン]
+        H[コンプライアンス]
+    end
+
+    B --> Monitor
+    B --> Secure
+
+    C -.Runtime Insights.-> F
+    C -.Runtime Insights.-> G
+
+    F --> I[優先順位付け<br/>実際に使用中のリスク]
+    G --> I
+    H --> I
+
+    I --> J[迅速な対応<br/>2秒未満]
+
+    style A fill:#4CAF50
+    style B fill:#2196F3
+    style I fill:#FF9800
+    style J fill:#F44336
 ```
 
 **具体的な統合の価値**
@@ -162,6 +225,29 @@ Sysdigは、2025年のGartner Market Guide for CNAPPで代表的ベンダーと�
 2. アクセスキーを取得（管理画面の Settings > Agent Installation から確認可能）
 
 ### 初期セットアップ：Kubernetes環境へのデプロイ
+
+**セットアップフロー全体像**
+
+```mermaid
+graph TD
+    A[開始] --> B[Sysdigアカウント作成]
+    B --> C[アクセスキー取得]
+    C --> D[Helmリポジトリ追加]
+    D --> E[values.yaml作成]
+    E --> F[helm install実行]
+    F --> G{エージェント起動確認}
+    G -->|失敗| H[ログ確認]
+    H --> I[トラブルシューティング]
+    I --> F
+    G -->|成功| J[Sysdig UIでデータ確認]
+    J --> K[ダッシュボード設定]
+    K --> L[アラート設定]
+    L --> M[完了!]
+
+    style B fill:#4CAF50
+    style F fill:#2196F3
+    style M fill:#FF9800
+```
 
 **Step 1: Helmリポジトリの追加**
 
@@ -606,12 +692,263 @@ Sysdigは従量課金制で、以下の要素で料金が決まります：
 - **月額削減額: $2,700**
 - **年間削減額: $32,400**
 
+```mermaid
+%%{init: {'theme':'base'}}%%
+graph LR
+    subgraph "自前Prometheus ($6,200/月)"
+        A[インフラ: $600]
+        B[運用工数: $5,600]
+    end
+
+    subgraph "Sysdig Monitor ($3,500/月)"
+        C[サービス料金: $3,500]
+        D[運用工数: $0]
+    end
+
+    E[削減額<br/>$2,700/月<br/>$32,400/年]
+
+    style A fill:#FF5722
+    style B fill:#FF5722
+    style C fill:#4CAF50
+    style D fill:#4CAF50
+    style E fill:#2196F3
+```
+
 さらに、以下の付加価値も考慮する必要があります：
 
 - より高度なダッシュボードとアラート機能
 - 長期データ保持（複数年）
 - エンタープライズサポート
 - セキュリティ機能（Sysdig Secureを追加した場合）
+
+---
+
+## トラブルシューティング
+
+実際の運用で遭遇する可能性のある問題と解決方法をまとめました。
+
+### エージェントが起動しない
+
+**症状**: Sysdig AgentのPodが `CrashLoopBackOff` または `Error` 状態
+
+**原因と解決方法**:
+
+1. **アクセスキーが正しくない**
+   ```bash
+   # Secretを確認
+   kubectl get secret -n sysdig-agent sysdig-agent -o jsonpath='{.data.access-key}' | base64 -d
+
+   # 正しいキーで更新
+   kubectl create secret generic sysdig-agent \
+     --from-literal=access-key=YOUR_CORRECT_KEY \
+     --dry-run=client -o yaml | kubectl apply -n sysdig-agent -f -
+   ```
+
+2. **リージョン設定が間違っている**
+   ```bash
+   # ログで確認
+   kubectl logs -n sysdig-agent -l app=sysdig-agent --tail=100
+
+   # "Failed to connect to collector" というエラーが出る場合、
+   # values.yamlのregion設定を確認
+   ```
+
+3. **ネットワーク接続の問題**
+   ```bash
+   # エージェントからSysdigエンドポイントへの接続確認
+   kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
+     curl -v https://ingest-us1.app.sysdig.com
+   ```
+
+### メトリクスが表示されない
+
+**症状**: Sysdig UIでメトリクスが表示されない、またはデータが古い
+
+**解決方法**:
+
+1. **エージェントが正常に動作しているか確認**
+   ```bash
+   kubectl get pods -n sysdig-agent
+   kubectl logs -n sysdig-agent -l app=sysdig-agent | grep "Successfully connected"
+   ```
+
+2. **メトリクス収集設定の確認**
+   ```bash
+   # ConfigMapを確認
+   kubectl get configmap -n sysdig-agent sysdig-agent -o yaml
+
+   # prometheus.enabledがtrueになっているか確認
+   ```
+
+3. **データが反映されるまで待つ**
+   - 初回データ送信: 約10秒
+   - UIに反映: 約1分
+   - 履歴データ: 約5分
+
+### Prometheus Remote Writeが動作しない
+
+**症状**: 既存PrometheusからSysdigへメトリクスが送信されない
+
+**解決方法**:
+
+1. **API Tokenを確認**
+   ```bash
+   # Prometheus設定でbearer_tokenが正しいか確認
+   # Settings > User Profile > API Token から取得
+   ```
+
+2. **Prometheusログを確認**
+   ```bash
+   # "remote_write" セクションのエラーを確認
+   kubectl logs -n monitoring prometheus-xxx | grep remote_write
+   ```
+
+3. **ネットワークポリシー**
+   - Prometheusから`ingest-<region>.app.sysdig.com`へのHTTPS(443)接続が許可されているか確認
+
+### アラートが発火しない
+
+**症状**: アラートルールを設定したが通知が来ない
+
+**解決方法**:
+
+1. **アラート条件の確認**
+   ```promql
+   # PromQL Explorerで条件を事前にテスト
+   # アラート条件が実際にtrueになっているか確認
+   ```
+
+2. **通知チャネルの設定**
+   - Settings > Notifications で通知チャネルが正しく設定されているか確認
+   - テスト通知を送信して動作確認
+
+3. **アラートのスコープ**
+   - アラートのスコープフィルターが適切に設定されているか確認
+   - 対象リソースが実際に存在するか確認
+
+---
+
+## よくある質問（FAQ）
+
+### Q1: Sysdig MonitorはPrometheusの完全な代替になりますか？
+
+**A**: はい、ほとんどのユースケースで代替可能です。
+
+- ✅ PromQLクエリ: 完全互換
+- ✅ アラートルール: インポート可能
+- ✅ メトリクス収集: 自動対応（KSM、node exporter、cAdvisor相当）
+- ✅ カスタムエクスポーター: サポート
+
+ただし、以下のような特殊なケースでは検討が必要です：
+- ❌ 完全にオフライン環境（インターネット接続不可）
+- ❌ 非常に特殊なカスタムエクスポーター（要検証）
+
+### Q2: 既存のGrafanaダッシュボードは使えますか？
+
+**A**: Grafanaダッシュボードをそのまま使うことはできませんが、Sysdigで再作成できます。
+
+**移行方法**:
+1. Grafanaダッシュボードで使用しているPromQLクエリを確認
+2. Sysdig UIのDashboard機能で同じクエリを使用してパネルを作成
+3. Sysdigの標準ダッシュボードで代替できる場合も多い
+
+多くの場合、Sysdigの標準ダッシュボードの方が高機能なため、移行後はGrafanaよりも使いやすいという声が多いです。
+
+### Q3: データの保持期間はどれくらいですか？
+
+**A**: プランによって異なりますが、通常は以下の通りです：
+
+- **標準プラン**: 15日間（Prometheusの数週間より長い）
+- **エンタープライズプラン**: 3ヶ月〜複数年（カスタマイズ可能）
+
+長期保存が必要な場合は、営業担当に相談することで柔軟に対応可能です。
+
+### Q4: コスト削減できると言っているが、本当ですか？
+
+**A**: 環境規模と運用体制によりますが、多くの場合で削減可能です。
+
+**コスト削減できるケース**:
+- 中規模以上の環境（50ノード以上）
+- エンジニアの人件費が高い地域
+- 運用工数を削減したい組織
+
+**コスト増加する可能性があるケース**:
+- 小規模環境（10ノード未満）
+- すでにPrometheusが完璧に自動化されている
+- オープンソースのみで運用するポリシーがある
+
+### Q5: Sysdig SecureなしでMonitorだけ使えますか？
+
+**A**: はい、可能です。
+
+- Sysdig MonitorとSysdig Secureは独立した製品
+- Monitorのみで監視機能を利用可能
+- 後からSecureを追加することも可能
+
+ただし、CNAPPとしての統合価値を最大限活用するには、両方の利用を推奨します。
+
+### Q6: マルチクラウド環境でも使えますか？
+
+**A**: はい、マルチクラウド/ハイブリッドクラウドに最適です。
+
+サポートされる環境：
+- ✅ AWS (EKS, EC2, Fargate)
+- ✅ Azure (AKS, VMs)
+- ✅ Google Cloud (GKE, Compute Engine)
+- ✅ オンプレミス Kubernetes
+- ✅ OpenShift
+- ✅ Rancher
+
+すべての環境を統合ビューで監視でき、これがSysdigの大きな強みです。
+
+### Q7: セキュリティは大丈夫ですか？データはどこに保存されますか？
+
+**A**: エンタープライズグレードのセキュリティを提供しています。
+
+**セキュリティ対策**:
+- SOC 2 Type II 認証
+- ISO 27001 認証
+- GDPR準拠
+- 転送中・保管中のデータ暗号化
+
+**データ保存場所**:
+- リージョンを選択可能（US、EU、APなど）
+- オンプレミス版も提供（Sysdig On-Premises）
+
+### Q8: 無料トライアルはありますか？
+
+**A**: はい、30日間の無料トライアルがあります。
+
+**トライアルで試せること**:
+- 全機能の利用（Monitor + Secure）
+- 無制限のデータ保持期間（トライアル期間中）
+- フルサポート
+
+[こちらから申し込み可能](https://sysdig.com/company/freetrial/)
+
+### Q9: サポートは日本語対応していますか？
+
+**A**: はい、日本のお客様向けのサポートがあります。
+
+- 日本語ドキュメント（一部）
+- 日本語サポートチーム
+- 日本のパートナー企業によるサポート
+
+技術文書の多くは英語ですが、サポートは日本語で受けられます。
+
+### Q10: Prometheus以外のメトリクスソースもサポートしていますか？
+
+**A**: はい、幅広いデータソースをサポートしています。
+
+- ✅ Prometheus (Remote Write、エクスポーター)
+- ✅ StatsD
+- ✅ JMX
+- ✅ AWS CloudWatch
+- ✅ Azure Monitor
+- ✅ Google Cloud Monitoring
+- ✅ カスタムAPI統合
+
+Sysdig Agentだけで多くの標準メトリクスを収集できますが、特殊なメトリクスも柔軟に統合可能です。
 
 ---
 
