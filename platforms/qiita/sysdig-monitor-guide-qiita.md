@@ -2,10 +2,10 @@
 tags: Kubernetes, Prometheus, Monitoring, Sysdig, CloudNative
 -->
 
-# Sysdig Monitor をみんなに使って欲しい 徹底解説
+# Sysdig Monitor をみんなに使って欲しい 徹底解説【2025年最新版】
 
 > **この記事について**
-> Prometheusの100%マネージドサービスとして、そしてCNAPP（Cloud-Native Application Protection Platform）として進化したSysdig Monitorの徹底解説です。実際のセットアップ手順、コスト比較、トラブルシューティングまで網羅しています。
+> 2025年最新情報に基づき、Prometheusの100%マネージドサービスとして、そしてCNAPP（Cloud-Native Application Protection Platform）として進化したSysdig Monitorの徹底解説です。最新のShieldチャートを含む実際のセットアップ手順、コスト比較、トラブルシューティングまで網羅しています。
 
 ## なぜ今、Sysdig Monitorなのか？
 
@@ -222,14 +222,34 @@ Sysdigは、2025年のGartner Market Guide for CNAPPで代表的ベンダーと�
 
 **前提条件**
 
-- Kubernetesクラスタ（1.19以上推奨）
-- Helm 3.x
+- Kubernetesクラスタ（1.19以上推奨、1.24+を推奨）
+- Helm 3.10以上（推奨: 3.18+）
 - Sysdigアカウント（無料トライアル可）
+- kubectl コマンドがクラスタに接続できる状態
 
 **アカウント作成**
 
 1. [Sysdig公式サイト](https://sysdig.com/)から無料トライアルに申し込み
 2. アクセスキーを取得（管理画面の Settings > Agent Installation から確認可能）
+
+### 📌 重要: 2025年の最新インストール方法について
+
+Sysdigは2025年より、**Shieldチャート**を推奨インストール方法として提供しています。従来の`sysdig-deploy`チャートも引き続き利用可能ですが、新規インストールでは**Shieldチャートの使用を推奨**します。
+
+#### Shield vs sysdig-deploy 比較
+
+| 項目 | Shield（推奨） | sysdig-deploy（従来）|
+|------|----------------|---------------------|
+| **最新バージョン** | 1.22.0 | 利用可能 |
+| **設定構造** | フィーチャーフラグベース | コンポーネントベース |
+| **GKE Autopilot** | ✅ ネイティブサポート | ⚠️ 追加設定必要 |
+| **導入難易度** | ⭐⭐⭐ (やや簡単) | ⭐⭐⭐⭐ (標準) |
+| **公式推奨度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **ドキュメント** | [最新](https://docs.sysdig.com/en/sysdig-monitor/kubernetes/) | [従来](https://docs.sysdig.com/en/sysdig-monitor/classic-install-kubernetes/) |
+
+本記事では、**両方の方法を紹介**します。どちらを選択しても、Sysdig Monitorの全機能を利用できます。
+
+---
 
 ### 初期セットアップ：Kubernetes環境へのデプロイ
 
@@ -255,6 +275,82 @@ graph TD
     style F fill:#2196F3
     style M fill:#FF9800
 ```
+
+#### オプション A: Shieldチャートを使用（2025年推奨）
+
+**Step 1: Helmリポジトリの追加**
+
+```bash
+helm repo add sysdig https://charts.sysdig.com
+helm repo update
+```
+
+**Step 2: values.yamlの作成**
+
+最小構成のvalues.yamlを作成します：
+
+```yaml
+cluster_config:
+  name: my-production-cluster
+  # GKE Autopilotの場合は以下を追加
+  # cluster_type: gke-autopilot
+
+sysdig_endpoint:
+  region: us1  # us1, us2, us3, us4, eu1, au1, custom等
+  access_key: YOUR_ACCESS_KEY_HERE
+
+# Sysdig Monitorのみを使用する場合の推奨設定
+features:
+  kubernetes_metadata:
+    enabled: true
+  posture:
+    cluster_posture:
+      enabled: false
+  vulnerability_management:
+    container_vulnerability_management:
+      enabled: false
+```
+
+**Step 3: インストール**
+
+```bash
+helm upgrade --install --atomic --create-namespace \
+  -n sysdig \
+  -f values.yaml \
+  shield \
+  sysdig/shield
+```
+
+:::tip
+`--atomic` フラグにより、インストールが失敗した場合に自動的にロールバックされます。
+:::
+
+**Step 4: エージェントの起動確認**
+
+```bash
+kubectl get pods -n sysdig
+
+# 出力例
+# NAME                          READY   STATUS    RESTARTS   AGE
+# shield-agent-xxxxx            1/1     Running   0          2m
+# shield-cluster-shield-yyyyy   1/1     Running   0          2m
+```
+
+エージェントのログを確認：
+
+```bash
+kubectl logs -n sysdig -l app.kubernetes.io/name=shield --tail=50
+
+# 以下のようなメッセージが表示されればOK
+# "Successfully connected to Sysdig backend"
+# "Metrics collection started"
+```
+
+---
+
+#### オプション B: sysdig-deployチャートを使用（従来の方法）
+
+従来のsysdig-deployチャートでも問題なく動作します。既存環境からの移行や、特定の要件がある場合に選択してください。
 
 **Step 1: Helmリポジトリの追加**
 
@@ -956,6 +1052,42 @@ graph LR
 - ✅ カスタムAPI統合
 
 Sysdig Agentだけで多くの標準メトリクスを収集できますが、特殊なメトリクスも柔軟に統合可能です。
+
+### Q11: ShieldチャートとSysdig-deployチャート、どちらを使うべきですか？
+
+**A**: 新規インストールの場合は**Shieldチャート**を推奨します。
+
+**Shieldチャートを選ぶべきケース**:
+- ✅ 新規インストール
+- ✅ GKE Autopilotを使用
+- ✅ 最新機能をいち早く利用したい
+- ✅ シンプルな設定構造を好む
+
+**sysdig-deployチャートを選ぶべきケース**:
+- ✅ 既存環境がsysdig-deployで稼働中
+- ✅ 移行計画がまだない
+- ✅ 特定のカスタマイズが必要
+
+どちらを選んでも、機能面での違いはありません。Sysdig公式は2025年よりShieldチャートを推奨していますが、sysdig-deployも引き続きサポートされます。
+
+### Q12: sysdig-deployからShieldへの移行は必須ですか？
+
+**A**: いいえ、必須ではありません。
+
+現在sysdig-deployで問題なく動作している場合、急いで移行する必要はありません。ただし、以下の場合は移行を検討してください：
+
+- GKE Autopilotへの移行を計画している
+- 新機能を積極的に利用したい
+- 設定の簡素化を図りたい
+
+移行する場合は、以下の手順で行います：
+
+1. 新しいvalues.yamlを作成（Shieldチャート用）
+2. テスト環境で動作確認
+3. 本番環境で `helm upgrade` を実行
+4. エージェントの動作確認
+
+詳細な移行手順は、[Sysdig公式ドキュメント](https://docs.sysdig.com/en/sysdig-monitor/kubernetes/)を参照してください。
 
 ---
 
