@@ -4,6 +4,30 @@
 
 ## 📚 記事一覧
 
+### 3. Sysdig で読み解く AI 時代のクラウドセキュリティ【シリーズ】（2026年版）
+
+「AIを守る（Securing AI）× AIで守る（AI for Security）」の二軸で Sysdig の AI 戦略を読み解く6本シリーズ。
+
+| # | 記事 | テーマ |
+|---|---|---|
+| #1 | [総論：二軸フレームワーク](./platforms/qiita/ai-security-series/s01-ai-framework-overview.md) | バラバラに見える機能を一本の思想で読む |
+| #2 | [AIを守る① - AI Workload Security](./platforms/qiita/ai-security-series/s02-securing-ai-workloads.md) | 34%の GenAI ワークロードが公開状態という現実 |
+| #3 | [AIを守る② - MCP Server のリスク](./platforms/qiita/ai-security-series/s03-mcp-server-security.md) | AI 連携ツールがもたらす新攻撃面 |
+| #4 | [AIで守る① - Sysdig Sage™ の設計思想](./platforms/qiita/ai-security-series/s04-sysdig-sage-design.md) | チャットボットではなく「判断し・行動する」AI |
+| #5 | [AIで守る② - Agentic Cloud Security](./platforms/qiita/ai-security-series/s05-agentic-cloud-security.md) | 週80時間の手作業を分単位に |
+| #6 | [総括 - Sysdig の戦略的ポジション](./platforms/qiita/ai-security-series/s06-sysdig-strategy.md) | プラットフォーム一体化の価値 |
+
+- Qiita版: [`platforms/qiita/ai-security-series/`](./platforms/qiita/ai-security-series/)
+- タグ: `#CNAPP` `#Sysdig` `#RuntimeSecurity` `#AI` `#CloudSecurity`
+
+### 独立記事：セキュリティ製品は"設計思想"で使え（2026年版）
+
+- **[Hash検知が漏れた事象から考えるCNAPP運用のベストプラクティス](./platforms/qiita/cnapp-hash-detection.md)**
+  - 実際のマルウェア検知事象をもとに、Hash/YARA/Falco の多層防御を解説
+  - タグ: `#CNAPP` `#Sysdig` `#RuntimeSecurity` `#Falco`
+
+---
+
 ### 1. OSS監視ツール徹底比較（2025年版）
 
 - **[OSS監視ツール徹底比較：あなたの環境に合う選択はどれか](./oss-monitoring-tools-comparison.md)**
