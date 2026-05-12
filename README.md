@@ -104,6 +104,7 @@ Qiita版: [`platforms/qiita/ai-security-series/`](./platforms/qiita/ai-security-
 | [cnapp-hash-detection.md](./platforms/qiita/cnapp-hash-detection.md) | Hash検知ベストプラクティス（Qiita版） |
 | [2025-12-08_sysdig-ids-ips-comparison.md](./platforms/qiita/2025-12-08_sysdig-ids-ips-comparison.md) | IDS/IPS比較（2025-12） |
 | [2026-02-20_sysdig-malware-control-best-practices.md](./platforms/qiita/2026-02-20_sysdig-malware-control-best-practices.md) | マルウェア制御ベストプラクティス（2026-02） |
+| [2026-05-13_sysdig-resource-ownership.md](./platforms/qiita/2026-05-13_sysdig-resource-ownership.md) | "誰が対応？"問題を解く Sysdig Resource Ownership（2026-05） |
 | [2025-01-15_tfdrift-falco-oss-journey.md](./platforms/qiita/2025-01-15_tfdrift-falco-oss-journey.md) | tfdrift-falco OSS開発の軌跡 |
 | [2025-01-15_tfdrift-falco-progress-01.md](./platforms/qiita/2025-01-15_tfdrift-falco-progress-01.md) | tfdrift-falco 進捗レポート #1 |
 | [2025-01-15_tfdrift-falco-progress-02.md](./platforms/qiita/2025-01-15_tfdrift-falco-progress-02.md) | tfdrift-falco 進捗レポート #2 |
